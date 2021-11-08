@@ -4,6 +4,7 @@ import com.paulius.demo.exception.EmployeeNotFoundException;
 import com.paulius.demo.model.Employee;
 import com.paulius.demo.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +25,13 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees/{id}")
-    Employee one(@PathVariable("id")Long id){
-        return repository.findById(id)
+    EntityModel<Employee> one(@PathVariable("id")Long id){
+        Employee employee =  repository.findById(id)
                 .orElseThrow(()->new EmployeeNotFoundException(id));
+
+        return EntityModel.of(employee,
+                linkTo(methodOn(EmployeeController.class).one(id)).withSelfRel(),
+                linkTo(methodOn(EmployeeController.class).all()).withRel("employees"));
     }
     @PutMapping("/employees/{id}")
     Employee editEmployee(@RequestBody Employee newEmployee,
@@ -45,4 +50,5 @@ public class EmployeeController {
     void deleteEmployee(@PathVariable Long id){
         repository.deleteById(id);
     }
+
 }
